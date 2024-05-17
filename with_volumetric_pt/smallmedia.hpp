@@ -4,6 +4,7 @@
 #include <unordered_map>
 #include <random>
 
+namespace smallpaint_smallmedia {
 using namespace std;
 
 // Surface render settings
@@ -27,22 +28,11 @@ std::uniform_real_distribution<double> uniform;
 const double inf = 1e9;
 const double eps = 1e-6;
 
-
-// Assertions for debugging
-#define ASSERT
-void assert(const bool& condition, string message) {
-#ifndef ASSERT
-	return;
-#endif
-	if (!condition)
-		printf((message + "\n").c_str());
-}
-
 // Basic Vector class
 struct Vec {
 	double x, y, z;
-	Vec(double x0, double y0, double z0){ x = x0; y = y0; z = z0; }
-	Vec(double xyz0 = 0){ x = xyz0; y = xyz0; z = xyz0; }
+	Vec(double x0, double y0, double z0) { x = x0; y = y0; z = z0; }
+	Vec(double xyz0 = 0) { x = xyz0; y = xyz0; z = xyz0; }
 	Vec operator+(const Vec &b) const { return Vec(x + b.x, y + b.y, z + b.z); }
 	Vec operator+=(const Vec &b) { x += b.x; y += b.y; z += b.z; return (*this); }
 	Vec operator-(const Vec &b) const { return Vec(x - b.x, y - b.y, z - b.z); }
@@ -53,7 +43,7 @@ struct Vec {
 	Vec operator/(const Vec &b) const { return Vec(x / b.x, y / b.y, z / b.z); }
 	bool operator<(const Vec &b) const { return x < b.x && y < b.y && z < b.z; }
 	bool operator>(const Vec &b) const { return x > b.x && y > b.y && z > b.z; }
-	Vec& norm(){ return *this = *this * (1 / sqrt(x*x + y*y + z*z)); }
+	Vec& norm() { return *this = *this * (1 / sqrt(x*x + y*y + z*z)); }
 	double length() const { return sqrt(x*x + y*y + z*z); }
 	double dot(const Vec &b) const { return x*b.x + y*b.y + z*b.z; }
 	double avg() const { return (x + y + z) / 3.0; }
@@ -172,7 +162,7 @@ double perlin(double x, double y, double z)
 // 3D-Grid of double values
 class Grid {
 
-public:
+	public:
 	unsigned int n; // Number of elements in one dimension --> Grid is n by n by n
 	double* values;
 
@@ -185,8 +175,6 @@ public:
 	double& el(unsigned int x, unsigned int y, unsigned int z)
 	{
 		int index = z * n * n + y * n + x;
-		if (index > n*n*n - 1)
-			printf("Grid index out of range");
 		return values[index];
 	}
 
@@ -263,7 +251,7 @@ struct Ray {
 
 // Sceneobject with a material
 class Obj {
-public:
+	public:
 	Vec clr;
 	double emission;
 	int type; // 1 = diffuse, 2 = specular, 3 = refractive
@@ -277,7 +265,7 @@ public:
 
 // Plane defined by normal and distance
 class Plane : public Obj {
-public:
+	public:
 	Vec n;
 	double d;
 	Plane(double d_ = 0, Vec n_ = 0) {
@@ -297,7 +285,7 @@ public:
 
 // Sphere defined by center and radius
 class Sphere : public Obj {
-public:
+	public:
 	Vec c;
 	double r;
 
@@ -306,11 +294,11 @@ public:
 		double b = ((ray.o - c) * 2).dot(ray.d);
 		double c_ = (ray.o - c).dot((ray.o - c)) - (r*r);
 		double disc = b*b - 4 * c_;
-		if (disc<0) return 0;
+		if (disc < 0) return 0;
 		else disc = sqrt(disc);
 		double sol1 = -b + disc;
 		double sol2 = -b - disc;
-		return (sol2>eps) ? sol2 / 2 : ((sol1>eps) ? sol1 / 2 : 0);
+		return (sol2 > eps) ? sol2 / 2 : ((sol1 > eps) ? sol1 / 2 : 0);
 	}
 
 	Vec normal(const Vec& p0) const {
@@ -320,7 +308,7 @@ public:
 
 // Intersection class storing sceneobject reference and ray distance parameter t
 class Intersection {
-public:
+	public:
 	Intersection() { t = inf; object = nullptr; }
 	Intersection(double t_, Obj* object_) { t = t_; object = object_; }
 	operator bool() { return object != nullptr; }
@@ -331,12 +319,12 @@ public:
 // Pointlight with a color, intensity and position
 class PointLight {
 
-private:
+	private:
 	Vec clr;
 	Vec pos;
 	double intensity;
 
-public:
+	public:
 	PointLight(Vec pos_ = 0, double intensity_ = 0, Vec clr_ = 0) {
 		pos = pos_;
 		intensity = intensity_;
@@ -347,7 +335,7 @@ public:
 		return clr * intensity;
 	}
 
-	Vec samplePos()	{
+	Vec samplePos() {
 		return pos;
 	}
 };
@@ -357,18 +345,18 @@ public:
 // I.e. densities[0][0][0] = left bottom front, densities[1][1][1] = right top back
 class Medium {
 
-private:
+	private:
 	Vec _sigma_a;	// base absorption coefficient
 	Vec _sigma_s;	// base scattering coefficient
 	Vec _sigma_t;	// base extinction coefficient
 	Vec _emission;	// base volumetric emission
 
-public:
+	public:
 	Vec position;	// left bottom front corner position
 	Vec size;		// size of the medium
 	Grid densities;	// density value grid
 
-	Medium(Vec _a = 0, Vec _s = 0, Vec _em = 0, Grid _densities = 0, Vec _pos = 0, Vec _size = 0)	{
+	Medium(Vec _a = 0, Vec _s = 0, Vec _em = 0, Grid _densities = 0, Vec _pos = 0, Vec _size = 0) {
 		_sigma_a = _a;
 		_sigma_s = _s;
 		_sigma_t = _a + _s;
@@ -617,7 +605,7 @@ public:
 class Scene {
 	vector<Obj*> objects;
 
-public:
+	public:
 	PointLight* light;
 	Medium* medium;
 
@@ -637,7 +625,7 @@ public:
 			}
 		}
 		return closestIntersection;
-	}
+    }
 
 };
 
@@ -711,8 +699,9 @@ Vec camcr(const double x, const double y, const double width, const double heigh
 	float fovx = PI / 4;
 	float fovy = (h / w) * fovx;
 	return Vec(((2 * x - w) / w) * tan(fovx),
-		-((2 * y - h) / h) * tan(fovy),
-		-1.0);
+			   -((2 * y - h) / h) * tan(fovy),
+			   -1.0);
 }
 
 #pragma endregion
+}

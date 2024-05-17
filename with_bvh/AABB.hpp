@@ -6,6 +6,7 @@
 #include "Ray.hpp"
 #include "constants.hpp"
 
+namespace smallpaint_bvh {
 struct AABB {
 	inline AABB() { min = Vec(inf, inf, inf); max = Vec(-inf, -inf, -inf); }	// an empty interval
 	inline AABB(Vec min_, Vec max_) { min = min_; max = max_; }
@@ -35,7 +36,7 @@ struct AABB {
 		float tymin = ((yDirNegative ? max.y : min.y) - ray.o.y) * inverseDirection.y;
 		float tymax = ((yDirNegative ? min.y : max.y) - ray.o.y) * inverseDirection.y;
 		if (tmin > tymax || tymin > tmax) {
-		    return false;
+			return false;
 		}
 		if (tymin > tmin) {
 			tmin = tymin;
@@ -48,13 +49,13 @@ struct AABB {
 		float tzmin = ((zDirNegative ? max.z : min.z) - ray.o.z) * inverseDirection.z;
 		float tzmax = ((zDirNegative ? min.z : max.z) - ray.o.z) * inverseDirection.z;
 		if (tmin > tzmax || tzmin > tmax) {
-		    return false;
+			return false;
 		}
 		if (tzmin > tmin) {
-		    tmin = tzmin;
+			tmin = tzmin;
 		}
 		if (tzmax < tmax) {
-		    tmax = tzmax;
+			tmax = tzmax;
 		}
 		return (tmin < closestKnownT) && (tmax > eps);
 	}
@@ -90,5 +91,5 @@ inline AABB enclose(const AABB& boundingBox, const Vec& point) {
 
 	return ret;
 }
-
+}
 #endif
